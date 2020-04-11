@@ -60,7 +60,12 @@ public final class Matrice implements Cloneable {
 		}
 
 		Rational[][] sum = new Rational[n][m];
-		/** Remplir ici le code manquant */
+		
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < m; j++) {
+				sum[i][j] = (M.coeff[i][j]).plus(this.coeff[i][j]);
+			}
+		}
 		return new Matrice(sum);
 	}
 
