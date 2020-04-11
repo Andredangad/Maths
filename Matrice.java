@@ -78,7 +78,12 @@ public final class Matrice implements Cloneable {
 		int p = M.m;
 
 		Rational[][] prod = new Rational[n][p];
-		/** Remplir ici le code manquant */
+		for(int i = 0; i < n; i++)
+            for(int j=0 ;j<p ;j++) {
+                prod[i][j] = new Rational(0);
+                for(int k=0; k<n; k++)
+                    prod[i][j] = prod[i][j].plus(this.coeff[i][k].times(M.coeff[k][j]));
+            }
 		return new Matrice(prod);
 	}
 
@@ -89,7 +94,9 @@ public final class Matrice implements Cloneable {
 	 */
 	public Matrice transpose() {
 		Rational[][] trans = new Rational[m][n];
-		/** Remplir ici le code manquant */
+		for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++)
+				trans[i][j] = this.coeff[j][i];
 		return new Matrice(trans);
 	}
 
@@ -100,7 +107,13 @@ public final class Matrice implements Cloneable {
 	 * @param j deuxième ligne à échanger
 	 */
 	private void swapRows(int i, int j) {
-		/** Remplir ici le code manquant */
+
+		Rational[][] temp = new Rational[m][n];
+		temp = this.coeff;
+		this.coeff[i] = this.coeff[j];
+		temp[j] = this.coeff[i];
+
+
 	}
 
 	/**
