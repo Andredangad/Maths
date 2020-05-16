@@ -60,7 +60,9 @@ public final class Matrice implements Cloneable {
 		}
 
 		Rational[][] sum = new Rational[n][m];
-		/** Remplir ici le code manquant */
+		for(int i=0;i<n;i++)
+			for(int j=0;j<m;j++)
+				sum[i][j] = this.coeff[i][j].plus(M.coeff[i][j]);
 		return new Matrice(sum);
 	}
 
@@ -78,12 +80,12 @@ public final class Matrice implements Cloneable {
 		int p = M.m;
 
 		Rational[][] prod = new Rational[n][p];
-		for(int i = 0; i < n; i++)
-            for(int j=0 ;j<p ;j++) {
-                prod[i][j] = new Rational(0);
-                for(int k=0; k<n; k++)
-                    prod[i][j] = prod[i][j].plus(this.coeff[i][k].times(M.coeff[k][j]));
-            }
+		for(int i=0;i<n;i++)
+			for(int j=0;j<p;j++) {
+					prod[i][j] = new Rational(0);
+				for(int k=0;k<M.n;k++)
+					prod[i][j] = prod[i][j].plus(this.coeff[i][k].times(M.coeff[k][j]));
+			}		
 		return new Matrice(prod);
 	}
 
@@ -94,26 +96,25 @@ public final class Matrice implements Cloneable {
 	 */
 	public Matrice transpose() {
 		Rational[][] trans = new Rational[m][n];
-		for (int i = 0; i < n; i++)
-            for (int j = 0; j < m; j++)
+		for(int i=0;i<m;i++)
+			for(int j=0;j<n;j++)
 				trans[i][j] = this.coeff[j][i];
 		return new Matrice(trans);
 	}
 
 	/**
-	 * Échange les lignes i et j de la matrice
+	 * échange les lignes i et j de la matrice
 	 * 
 	 * @param i première ligne à échanger
 	 * @param j deuxième ligne à échanger
 	 */
 	private void swapRows(int i, int j) {
-
-		Rational[][] temp = new Rational[m][n];
-		temp = this.coeff;
-		this.coeff[i] = this.coeff[j];
-		temp[j] = this.coeff[i];
-
-
+		Rational temp;
+		for(int k=0;k<m;k++) {
+			temp = this.coeff[i][k];
+			this.coeff[i][k] = this.coeff[j][k];
+			this.coeff[j][k] = temp;
+		}
 	}
 
 	/**
@@ -124,7 +125,8 @@ public final class Matrice implements Cloneable {
 	 * @param a scalaire par lequel on multiplie la ligne i quand on l'ajoute
 	 */
 	private void transvection(int i, int j, Rational a) {
-		/** Remplir ici le code manquant */
+		for(int k=0;k<m;k++)
+			this.coeff[j][k] = this.coeff[j][k].plus(this.coeff[i][k].times(a));
 	}
 
 	/**
@@ -134,7 +136,8 @@ public final class Matrice implements Cloneable {
 	 * @param a scalaire par lequel on multiplie la ligne i
 	 */
 	private void multiplyRow(int i, Rational a) {
-		/** Remplir ici le code manquant */
+		for(int j=0;j<m;j++)
+			this.coeff[i][j] = this.coeff[i][j].times(a);
 	}
 
 	/**
@@ -146,7 +149,12 @@ public final class Matrice implements Cloneable {
 	 */
 	public static Matrice identity(int n) {
 		Rational[][] id = new Rational[n][n];
-		/** Remplir ici le code manquant */
+		for(int i=0;i<n;i++)
+			for(int j=0;j<n;j++)
+				if(i == j)
+					id[i][j] = new Rational(1);
+				else 
+					id[i][j] = new Rational(0);
 		return new Matrice(id);
 	}
 
@@ -154,7 +162,7 @@ public final class Matrice implements Cloneable {
 	 * Calcul de la matrice identité de mêmes dimensions que this (si les dimensions
 	 * de this l'autorisent)
 	 * 
-	 * @return matrice identité : tableau n x n
+	 * @return matrice identitÃ© : tableau n x n
 	 */
 	public Matrice identity() {
 		if (m != n) {
@@ -196,6 +204,53 @@ public final class Matrice implements Cloneable {
 		 * S'il s'avère que la matrice this n'a pas d'inverse : throw new
 		 * ArithmeticException("Division par zéro");
 		 **/
+		int i,j,k;
+		/* Descente du pivot */
+		for(i=0;i<clone.n;i++){ 
+		    if(clone.coeff[i][i].equals(new Rational(0))){
+				k=i;
+				while(clone.coeff[k][i].equals(new Rational(0))){
+					
+			
+					
+					k++;
+				
+			
+				if(k==clone.n) 
+					throw new ArithmeticException("Division par zéro");
+				
+				else { 
+				   	clone.swapRows(i,k);
+				    id.swapRows(i,k);
+				}
+				}
+		    }
+		    id.multiplyRow(i, clone.coeff[i][i].inverse());
+		    clone.multiplyRow(i, clone.coeff[i][i].inverse());
+		  	    
+		    for (j=i+1;j<clone.n;j++){
+				if (!clone.coeff[j][i].equals(new Rational(0))){
+				    id.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    clone.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));	
+
+				    id.transvection(i,j,new Rational(1));
+				    clone.transvection(i, j, new Rational(1));
+				}
+		    }
+		}
+		/* Remontée du pivot de Gauss */
+		for(i=clone.n -1;i>=0;i--){
+		    id.multiplyRow(i, clone.coeff[i][i].inverse());
+		    clone.multiplyRow(i, clone.coeff[i][i].inverse());
+		    for (j=i-1;j>=0;j--){
+				if (!clone.coeff[j][i].equals(new Rational(0))){					
+				    id.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    clone.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    id.transvection(i,j,new Rational(1));
+				    clone.transvection(i, j, new Rational(1));
+				}
+		    }	       
+		}
 		return id;
 	}
 
@@ -206,6 +261,11 @@ public final class Matrice implements Cloneable {
 	 * @param b    vecteur n x 1 que l'on veut obtenir
 	 * 
 	 * @return vecteur colonne a tel que this * a = b : tableau n x 1
+	 n = ligne
+	 m = colonne
+	 tester si carré, 
+	 si carré : inverser this et faire this * b pour trouver a
+	 sinon pivot de gauss et regarder ce qui a à droite du pivot
 	 */
 	public Matrice solve(Matrice b) {
 		if (n != b.n || b.m != 1) {
@@ -214,6 +274,149 @@ public final class Matrice implements Cloneable {
 		Matrice clone = clone();
 		Matrice B = b.clone();
 		Rational[][] a = new Rational[m][1];
+/* 		if(clone.n == clone.m){
+			
+			clone = clone.inverse();
+			 
+			clone = clone.times(B);
+		
+			a = clone.coeff; 
+			
+			
+		}
+			
+		else{ */
+		int i,j,k;
+		/* Descente du pivot */
+		
+		for(i=0;i<clone.n;i++){ 
+
+			/* Supprimer la colonne */
+			if(i==clone.n-1) {
+                    Rational[][] tempMat = new Rational[clone.n][clone.m-1];
+                    for(int f=0;f<clone.n;f++)
+                        for(int g=0;g<clone.m-1;g++) {
+                            if(g == i){
+								tempMat[f][g] = clone.coeff[f][g+1];
+								
+
+							}
+                                
+                            else
+                                tempMat[f][g] = clone.coeff[f][g];
+                        }
+                    clone = new Matrice(tempMat);
+					a[i][0] = new Rational(0);
+                }
+
+	
+		    if(clone.coeff[i][i].equals(new Rational(0))){
+				k=i;
+				while(clone.coeff[k][i].equals(new Rational(0))){
+				
+					k++;
+				
+
+	
+				if(k==clone.n) {
+					if(B.coeff[k-1][0].equals(new Rational(0))){
+					Rational[][] temp = new Rational[clone.n-1][clone.m];
+                    for(int f=0;f<clone.n-1;f++)
+                        for(int g=0;g<clone.m;g++) {
+                            if(g == i){
+								temp[f][g] = clone.coeff[f][g];
+								
+
+							}
+                                
+                            else
+                                temp[f][g] = clone.coeff[f][g];
+                        }
+                    clone = new Matrice(temp);
+					System.out.println(clone);
+					k=0;
+					
+					}
+								if(i==clone.n-1) {
+                    Rational[][] tempMat = new Rational[clone.n][clone.m-1];
+                    for(int f=0;f<clone.n;f++)
+                        for(int g=0;g<clone.m-1;g++) {
+                            if(g == i){
+								tempMat[f][g] = clone.coeff[f][g+1];
+								
+
+							}
+                                
+                            else
+                                tempMat[f][g] = clone.coeff[f][g];
+                        }
+                    clone = new Matrice(tempMat);
+					a[i][0] = new Rational(0);
+                }
+
+					else{
+						throw new ArithmeticException("Division par zéro");
+					}
+
+					
+
+				}
+					
+					
+				else { 
+				   	clone.swapRows(i,k);
+				    B.swapRows(i,k);
+				}
+				}
+		    }
+
+
+		    B.multiplyRow(i, clone.coeff[i][i].inverse());
+		    clone.multiplyRow(i, clone.coeff[i][i].inverse());
+		  	    
+		    for (j=i+1;j<clone.n;j++){
+				if (!clone.coeff[j][i].equals(new Rational(0))){
+				    B.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    clone.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));	
+
+				    B.transvection(i,j,new Rational(1));
+				    clone.transvection(i, j, new Rational(1));
+				}
+		    }
+		}
+		/* Remontée du pivot de Gauss */
+		for(i=clone.n -1;i>=0;i--){
+		    B.multiplyRow(i, clone.coeff[i][i].inverse());
+		    clone.multiplyRow(i, clone.coeff[i][i].inverse());
+		    for (j=i-1;j>=0;j--){
+				if (!clone.coeff[j][i].equals(new Rational(0))){					
+				    B.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    clone.multiplyRow(j, new Rational(-1).times(clone.coeff[j][i].inverse()));
+				    B.transvection(i,j,new Rational(1));
+				    clone.transvection(i, j, new Rational(1));
+				}
+		    }	       
+		}
+		
+			/* solutions */
+
+			int f = 0;
+			int g = 0;
+			while(f<m){
+				if(a[f][0]==null){
+					a[f][0] = B.coeff[g][0];
+					f++;
+					g++;
+				}
+				else{
+					f++;
+				}
+
+			}
+
+			
+		// }
+
 		/**
 		 * Remplir ici le code manquant.
 		 * 
@@ -221,6 +424,7 @@ public final class Matrice implements Cloneable {
 		 * ArithmeticException("Pas de solution"); Si elle a plusieurs solutions : on
 		 * peut renvoyer n'importe quelle solution.
 		 **/
+		
 		return new Matrice(a);
 	}
 
